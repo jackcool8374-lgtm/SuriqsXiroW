@@ -1,0 +1,792 @@
+-- OXIRO GATE | KEY SYSTEM
+-- 3 ATTEMPTS LIMIT = KICK
+-- Delta / Mobile Compatible
+local MAX_ATTEMPTS = 3
+local CORRECT_KEY = "hello"
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TextChatService = game:GetService("TextChatService")
+local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+
+local Player = Players.LocalPlayer
+local attempts = 0
+
+-- KEY SYSTEM UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "OXIROGATE"
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 16)
+MainFrame.Position = UDim2.new(0.5, -185, 0.5, -125)
+MainFrame.Size = UDim2.new(0, 370, 0, 250)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local GlowCorner = Instance.new("UICorner")
+GlowCorner.CornerRadius = UDim.new(0, 16)
+GlowCorner.Parent = MainFrame
+
+local OuterStroke = Instance.new("UIStroke")
+OuterStroke.Name = "OuterGlow"
+OuterStroke.Parent = MainFrame
+OuterStroke.Color = Color3.fromRGB(60, 220, 255)
+OuterStroke.Thickness = 3
+OuterStroke.Transparency = 0
+
+local glowPulse = TweenService:Create(OuterStroke, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+	Color = Color3.fromRGB(140, 240, 255),
+	Thickness = 5
+})
+glowPulse:Play()
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 18)
+Title.Size = UDim2.new(1, 0, 0, 55)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "OXIRO GATE"
+Title.TextColor3 = Color3.fromRGB(80, 240, 255)
+Title.TextSize = 36
+
+local TitleGlow = Instance.new("UIStroke")
+TitleGlow.Parent = Title
+TitleGlow.Color = Color3.fromRGB(100, 255, 255)
+TitleGlow.Thickness = 2
+TitleGlow.Transparency = 0
+
+TweenService:Create(TitleGlow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+	Color = Color3.fromRGB(180, 255, 255),
+	Transparency = 0.3
+}):Play()
+
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Name = "SubTitle"
+SubTitle.Parent = MainFrame
+SubTitle.BackgroundTransparency = 1
+SubTitle.Position = UDim2.new(0, 0, 0, 70)
+SubTitle.Size = UDim2.new(1, 0, 0, 22)
+SubTitle.Font = Enum.Font.GothamMedium
+SubTitle.Text = "SECURITY VERIFICATION"
+SubTitle.TextColor3 = Color3.fromRGB(160, 200, 220)
+SubTitle.TextSize = 13
+
+local KeyBox = Instance.new("TextBox")
+KeyBox.Name = "KeyBox"
+KeyBox.Parent = MainFrame
+KeyBox.BackgroundColor3 = Color3.fromRGB(12, 18, 30)
+KeyBox.Position = UDim2.new(0.07, 0, 0, 100)
+KeyBox.Size = UDim2.new(0.86, 0, 0, 50)
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.PlaceholderText = "Enter access key..."
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(220, 250, 255)
+KeyBox.TextSize = 16
+KeyBox.PlaceholderColor3 = Color3.fromRGB(90, 140, 160)
+
+local KeyBoxCorner = Instance.new("UICorner")
+KeyBoxCorner.CornerRadius = UDim.new(0, 10)
+KeyBoxCorner.Parent = KeyBox
+
+local KeyGlow = Instance.new("UIStroke")
+KeyGlow.Parent = KeyBox
+KeyGlow.Color = Color3.fromRGB(60, 220, 255)
+KeyGlow.Thickness = 1.8
+KeyGlow.Transparency = 0
+
+TweenService:Create(KeyGlow, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+	Color = Color3.fromRGB(120, 240, 255),
+	Transparency = 0.15
+}):Play()
+
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Name = "SubmitBtn"
+SubmitBtn.Parent = MainFrame
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(20, 130, 200)
+SubmitBtn.Position = UDim2.new(0.18, 0, 0, 165)
+SubmitBtn.Size = UDim2.new(0.64, 0, 0, 45)
+SubmitBtn.Font = Enum.Font.GothamBold
+SubmitBtn.Text = "VERIFY"
+SubmitBtn.TextColor3 = Color3.fromRGB(240, 255, 255)
+SubmitBtn.TextSize = 17
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 10)
+BtnCorner.Parent = SubmitBtn
+
+local BtnGlow = Instance.new("UIStroke")
+BtnGlow.Parent = SubmitBtn
+BtnGlow.Color = Color3.fromRGB(80, 220, 255)
+BtnGlow.Thickness = 2
+BtnGlow.Transparency = 0
+
+local Status = Instance.new("TextLabel")
+Status.Name = "Status"
+Status.Parent = MainFrame
+Status.BackgroundTransparency = 1
+Status.Position = UDim2.new(0, 0, 0, 218)
+Status.Size = UDim2.new(1, 0, 0, 20)
+Status.Font = Enum.Font.GothamMedium
+Status.Text = ""
+Status.TextColor3 = Color3.fromRGB(255, 90, 90)
+Status.TextSize = 12
+
+SubmitBtn.MouseEnter:Connect(function()
+	TweenService:Create(SubmitBtn, TweenInfo.new(0.18), {BackgroundColor3 = Color3.fromRGB(35, 180, 240)}):Play()
+end)
+SubmitBtn.MouseLeave:Connect(function()
+	TweenService:Create(SubmitBtn, TweenInfo.new(0.18), {BackgroundColor3 = Color3.fromRGB(20, 130, 200)}):Play()
+end)
+
+local function runMainScript()
+	ScreenGui:Destroy()
+
+-- ==================== MAIN SCRIPT ====================
+local OWNER_USERNAME = "Markarenoob"
+local isOwner = Player.Name == OWNER_USERNAME
+
+local blockedUsernames = {}
+for _, name in ipairs(blockedUsernames) do
+	if Player.Name:lower() == name:lower() then return end
+end
+
+local permanentControllers = {}
+local tempControllers = {}
+
+local function isAuthorized(plr)
+	if not plr then return false end
+	if plr.Name == OWNER_USERNAME then return true end
+	if permanentControllers[plr.UserId] then return true end
+	if tempControllers[plr.UserId] then return true end
+	return false
+end
+
+local HVH_MODE = false
+local HVH_TARGET_USERID = nil
+local HVH_VOID = false
+local HVH_NOCLIP = false
+
+local function findPlayerByFuzzy(str)
+	if not str or str == "" then return nil end
+	str = str:lower()
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr.DisplayName:lower():find(str) or plr.Name:lower():find(str) then
+			return plr
+		end
+	end
+	return nil
+end
+
+local mode = "idle"
+local attackTarget = nil
+local savedTargetUserId = nil
+
+local FLOAT_HEIGHT = 2.5
+local DISTANCE = 3.0
+local SPRING_SMOOTH = 0.025
+local HITBOX_SIZE = 100
+local BLOCK_ENABLED = true
+local UNLIMITED_M1_ENABLED = true
+local ATTACK_RESET_INTERVAL = 4
+local FALL_SPEED = -3500
+local FALL_CHECK_Y = -4900
+local WALKSPEED = 16
+
+local ORBIT_ENABLED = false
+local ORBIT_SPEED = 1.0
+local ORBIT_RADIUS = 4.0
+local ORBIT_ANGLE = 0
+local CAMLOCK_ENABLED = false
+
+local isVoiding = false
+local VOID_MODE_ENABLED = false
+local NOCLIP_ENABLED = false
+local followConnection = nil
+local noclipConnection = nil
+local m1Running = false
+local playerButtons = {}
+
+local function applyWalkSpeed(speed)
+	WALKSPEED = speed
+	local c = Player.Character
+	if c then
+		local hum = c:FindFirstChild("Humanoid")
+		if hum then hum.WalkSpeed = speed end
+	end
+end
+
+Player.CharacterAdded:Connect(function(char)
+	task.wait(0.15)
+	applyWalkSpeed(WALKSPEED)
+end)
+
+local function setNoclip(enabled)
+	NOCLIP_ENABLED = enabled
+	if noclipConnection then noclipConnection:Disconnect() end
+	if enabled then
+		noclipConnection = RunService.Stepped:Connect(function()
+			local c = Player.Character
+			if not c then return end
+			for _, p in ipairs(c:GetDescendants()) do
+				if p:IsA("BasePart") then p.CanCollide = false end
+			end
+		end)
+	else
+		noclipConnection = nil
+	end
+end
+
+task.spawn(function()
+	m1Running = true
+	while m1Running do
+		if UNLIMITED_M1_ENABLED then
+			pcall(function()
+				local rem = ReplicatedStorage:FindFirstChild("CombatRemote")
+				if rem and attackTarget then
+					rem:FireServer("M1")
+				end
+			end)
+		end
+		task.wait()
+	end
+end)
+
+TextChatService.MessageReceived:Connect(function(msg)
+	local sender = Players:GetPlayerByUserId(msg.PlayerUserId)
+	if not sender then return end
+	local content = msg.Message:lower()
+	local args = string.split(content, " ")
+	local cmd = args[1] or ""
+	local arg = table.concat(args, " ", 2)
+
+	if isOwner then
+		if cmd == "hvh" and arg == "on" then HVH_MODE = true
+		elseif cmd == "hvh" and arg == "off" then
+			HVH_MODE = false; HVH_TARGET_USERID = nil; HVH_VOID = false; HVH_NOCLIP = false
+			if followConnection then stopFollowing() end
+		elseif cmd == "attack" and arg ~= "" then
+			local t = findPlayerByFuzzy(arg)
+			if t then HVH_TARGET_USERID = t.UserId; HVH_MODE = true; selectTarget(t) end
+		elseif cmd == "orbit" and arg == "on" then ORBIT_ENABLED = true
+		elseif cmd == "orbit" and arg == "off" then ORBIT_ENABLED = false
+		elseif cmd == "camlock" and arg == "on" then CAMLOCK_ENABLED = true
+		elseif cmd == "camlock" and arg == "off" then CAMLOCK_ENABLED = false
+		elseif cmd == "void" and arg == "all" then HVH_VOID = true; VOID_MODE_ENABLED = true
+		elseif cmd == "voidoff" and arg == "all" then HVH_VOID = false; VOID_MODE_ENABLED = false
+		elseif cmd == "noclip" and arg == "all" then HVH_NOCLIP = true; setNoclip(true)
+		elseif cmd == "noclipoff" and arg == "all" then HVH_NOCLIP = false; setNoclip(false)
+		elseif cmd == "stop" then
+			HVH_MODE = false; HVH_TARGET_USERID = nil
+			if followConnection then stopFollowing() end
+		elseif cmd == "addperm" and arg ~= "" then
+			local t = findPlayerByFuzzy(arg); if t then permanentControllers[t.UserId] = true end
+		elseif cmd == "addctrl" and arg ~= "" then
+			local t = findPlayerByFuzzy(arg); if t then tempControllers[t.UserId] = true end
+		elseif cmd == "revoke" and arg ~= "" then
+			local t = findPlayerByFuzzy(arg)
+			if t then permanentControllers[t.UserId] = nil; tempControllers[t.UserId] = nil end
+		end
+	end
+
+	if HVH_MODE and HVH_TARGET_USERID then
+		local t = Players:GetPlayerByUserId(HVH_TARGET_USERID)
+		if t and t ~= attackTarget then selectTarget(t) end
+		if HVH_VOID then VOID_MODE_ENABLED = true end
+		if HVH_NOCLIP then setNoclip(true) end
+	end
+
+	if not isAuthorized(sender) then return end
+	if cmd == "stop" then if followConnection then stopFollowing() end
+	elseif cmd == "orbit" and arg == "on" then ORBIT_ENABLED = true
+	elseif cmd == "orbit" and arg == "off" then ORBIT_ENABLED = false
+	elseif cmd == "camlock" and arg == "on" then CAMLOCK_ENABLED = true
+	elseif cmd == "camlock" and arg == "off" then CAMLOCK_ENABLED = false
+	elseif cmd == "void" then VOID_MODE_ENABLED = true
+	elseif cmd == "voidoff" then VOID_MODE_ENABLED = false
+	elseif cmd == "noclip" then setNoclip(true)
+	elseif cmd == "noclipoff" then setNoclip(false)
+	elseif cmd == "attack" and arg ~= "" then
+		local t = findPlayerByFuzzy(arg); if t then selectTarget(t) end
+	end
+end)
+
+local function goVoid(target)
+	if isVoiding or not VOID_MODE_ENABLED then return end
+	if not target or not target.Character then return end
+	local myChar = Player.Character; if not myChar then return end
+	local myHRP = myChar:FindFirstChild("HumanoidRootPart"); if not myHRP then return end
+	local tHRP = target.Character:FindFirstChild("HumanoidRootPart"); if not tHRP then return end
+
+	isVoiding = true
+	myHRP.CFrame = CFrame.new(tHRP.Position.X, myHRP.Position.Y, tHRP.Position.Z)
+	task.spawn(function()
+		for i = 1, 8 do
+			task.wait(0.015)
+			if not myHRP or not isVoiding then break end
+			myHRP.Velocity = Vector3.new(0, FALL_SPEED, 0)
+		end
+	end)
+	task.delay(0.5, function() isVoiding = false end)
+end
+
+task.spawn(function()
+	while true do
+		task.wait(0.03)
+		if not VOID_MODE_ENABLED or mode ~= "attack" or not attackTarget then continue end
+		local c = Player.Character; if not c then continue end
+		local hrp = c:FindFirstChild("HumanoidRootPart")
+		if hrp and hrp.Position.Y < FALL_CHECK_Y then
+			local hum = c:FindFirstChild("Humanoid"); if hum then hum.Health = 0 end
+		end
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(ATTACK_RESET_INTERVAL)
+		if VOID_MODE_ENABLED and mode == "attack" and attackTarget then
+			goVoid(attackTarget)
+		end
+	end
+end)
+
+local function restoreTargetAfterRespawn()
+	if HVH_MODE and HVH_TARGET_USERID then
+		local t = Players:GetPlayerByUserId(HVH_TARGET_USERID)
+		if t then
+			attackTarget = t; savedTargetUserId = t.UserId
+			if HVH_VOID then VOID_MODE_ENABLED = true end
+			if HVH_NOCLIP then setNoclip(true) end
+			task.wait(0.05); if not followConnection then startFollowing() end
+		end
+		return
+	end
+	if not savedTargetUserId then return end
+	local t = Players:GetPlayerByUserId(savedTargetUserId); if not t then return end
+	attackTarget = t
+	task.wait(0.05); if not followConnection then startFollowing() end
+end
+
+Player.CharacterAdded:Connect(function() task.wait(0.05); restoreTargetAfterRespawn() end)
+
+local smoothPos = nil
+
+local function positionAtTarget(target)
+	local myChar = Player.Character; if not myChar then return end
+	local myHRP = myChar:FindFirstChild("HumanoidRootPart"); if not myHRP then return end
+	if not target or not target.Character then return end
+	local tHRP = target.Character:FindFirstChild("HumanoidRootPart"); if not tHRP then return end
+	if isVoiding then return end
+
+	local targetPos = tHRP.Position + Vector3.new(0, FLOAT_HEIGHT, 0)
+	local myDesiredPos
+	if ORBIT_ENABLED then
+		ORBIT_ANGLE += ORBIT_SPEED * 0.05
+		myDesiredPos = targetPos + Vector3.new(math.cos(ORBIT_ANGLE)*ORBIT_RADIUS, 0, math.sin(ORBIT_ANGLE)*ORBIT_RADIUS)
+	else
+		local toTarget = (targetPos - myHRP.Position).Unit
+		myDesiredPos = targetPos - toTarget * DISTANCE
+	end
+	smoothPos = smoothPos and (smoothPos + (myDesiredPos - smoothPos) * SPRING_SMOOTH) or myHRP.Position
+	myHRP.CFrame = CFrame.new(smoothPos, targetPos)
+	if CAMLOCK_ENABLED then
+		Workspace.CurrentCamera.CFrame = CFrame.new(Workspace.CurrentCamera.CFrame.Position, targetPos)
+	end
+end
+
+local function updateHitboxes()
+	for _, plr in ipairs(Players:GetPlayers()) do
+		local c = plr.Character; if not c then continue end
+		local hrp = c:FindFirstChild("HumanoidRootPart"); if not hrp then continue end
+		if plr == Player then
+			hrp.Size = Vector3.new(2, 2, 2)
+		else
+			hrp.Size = Vector3.new(HITBOX_SIZE, HITBOX_SIZE, HITBOX_SIZE)
+		end
+	end
+end
+RunService.Heartbeat:Connect(updateHitboxes)
+
+function startFollowing()
+	if followConnection then followConnection:Disconnect() end
+	followConnection = RunService.Heartbeat:Connect(function()
+		local myChar = Player.Character; if not myChar or isVoiding then return end
+		if HVH_MODE and HVH_TARGET_USERID and (not attackTarget or attackTarget.UserId ~= HVH_TARGET_USERID) then
+			attackTarget = Players:GetPlayerByUserId(HVH_TARGET_USERID)
+			if HVH_VOID then VOID_MODE_ENABLED = true end
+			if HVH_NOCLIP then setNoclip(true) end
+		end
+		if not attackTarget and savedTargetUserId then
+			attackTarget = Players:GetPlayerByUserId(savedTargetUserId)
+		end
+		if not attackTarget or not attackTarget:IsDescendantOf(Players) then
+			if not HVH_MODE then stopFollowing() end
+			return
+		end
+		positionAtTarget(attackTarget)
+		pcall(function()
+			if BLOCK_ENABLED then
+				local rem = ReplicatedStorage:FindFirstChild("CombatRemote")
+				if rem then rem:FireServer("Block") end
+			end
+		end)
+	end)
+	mode = "attack"
+end
+
+function stopFollowing()
+	if followConnection then followConnection:Disconnect() end
+	followConnection = nil; mode = "idle"
+	if not HVH_MODE then attackTarget = nil; savedTargetUserId = nil end
+	isVoiding = false; smoothPos = nil
+end
+
+function selectTarget(plr)
+	if plr == Player then return end
+	mode = "attack"; attackTarget = plr; savedTargetUserId = plr.UserId
+	smoothPos = nil; startFollowing()
+end
+
+pcall(function() if CoreGui:FindFirstChild("OxiroGui") then CoreGui.OxiroGui:Destroy() end end)
+
+local ScreenGuiMain = Instance.new("ScreenGui")
+ScreenGuiMain.Name = "OxiroGui"
+ScreenGuiMain.Parent = Player:WaitForChild("PlayerGui")
+ScreenGuiMain.ResetOnSpawn = false; ScreenGuiMain.DisplayOrder = 99999
+
+local OpenBtn = Instance.new("TextButton")
+OpenBtn.Size = UDim2.new(0, 160, 0, 55)
+OpenBtn.Position = UDim2.new(0.82, 0, 0.88, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(20, 30, 45)
+OpenBtn.Text = isOwner and "OXIRO [OWNER]" or "OXIRO"
+OpenBtn.Font = Enum.Font.GothamBold
+OpenBtn.TextColor3 = Color3.fromRGB(80, 240, 255)
+OpenBtn.TextSize = 22
+OpenBtn.Parent = ScreenGuiMain
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(0, 12)
+local OpenGlow = Instance.new("UIStroke")
+OpenGlow.Parent = OpenBtn; OpenGlow.Color = Color3.fromRGB(60, 220, 255); OpenGlow.Thickness = 1.5
+TweenService:Create(OpenGlow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+	Color = Color3.fromRGB(120, 240, 255), Transparency = 0.2
+}):Play()
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 720)
+MainFrame.Position = UDim2.new(0.20, 0, 0.03, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(8, 12, 24)
+MainFrame.Active = true; MainFrame.Draggable = true; MainFrame.Visible = false
+MainFrame.Parent = ScreenGuiMain
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 14)
+local MainGlow = Instance.new("UIStroke")
+MainGlow.Parent = MainFrame; MainGlow.Color = Color3.fromRGB(60, 220, 255); MainGlow.Thickness = 2.5
+TweenService:Create(MainGlow, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+	Color = Color3.fromRGB(140, 240, 255), Thickness = 4
+}):Play()
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 50, 0, 36)
+CloseBtn.Position = UDim2.new(1, -55, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 30)
+CloseBtn.Text = "X"; CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextColor3 = Color3.fromRGB(220, 180, 180); CloseBtn.TextSize = 22
+CloseBtn.Parent = MainFrame
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -60, 0, 40)
+Title.Position = UDim2.new(0, 15, 0, 8)
+Title.BackgroundTransparency = 1
+Title.Text = isOwner and "OXIRO — OWNER PANEL" or "OXIRO"
+Title.Font = Enum.Font.GothamBold; Title.TextColor3 = Color3.fromRGB(80, 240, 255); Title.TextSize = 20
+Title.TextXAlignment = Enum.TextXAlignment.Left; Title.Parent = MainFrame
+local TitleStroke = Instance.new("UIStroke")
+TitleStroke.Parent = Title; TitleStroke.Color = Color3.fromRGB(100, 255, 255); TitleStroke.Thickness = 1
+
+local TabContainer = Instance.new("Frame")
+TabContainer.Size = UDim2.new(1, -30, 0, 40)
+TabContainer.Position = UDim2.new(0, 15, 0, 55)
+TabContainer.BackgroundTransparency = 1; TabContainer.Parent = MainFrame
+
+local TabLayout = Instance.new("UIListLayout")
+TabLayout.FillDirection = Enum.FillDirection.Horizontal; TabLayout.Padding = UDim.new(0, 8)
+TabLayout.Parent = TabContainer
+
+local TargetTabBtn = Instance.new("TextButton")
+TargetTabBtn.Size = UDim2.new(0, 115, 1, 0)
+TargetTabBtn.BackgroundColor3 = Color3.fromRGB(25, 60, 90)
+TargetTabBtn.Text = "TARGET"; TargetTabBtn.Font = Enum.Font.GothamBold
+TargetTabBtn.TextColor3 = Color3.fromRGB(120, 240, 255); TargetTabBtn.TextSize = 13
+TargetTabBtn.Parent = TabContainer
+Instance.new("UICorner", TargetTabBtn).CornerRadius = UDim.new(0, 8)
+local TargetGlow = Instance.new("UIStroke")
+TargetGlow.Parent = TargetTabBtn; TargetGlow.Color = Color3.fromRGB(60, 220, 255); TargetGlow.Thickness = 1
+
+local SettingsTabBtn = Instance.new("TextButton")
+SettingsTabBtn.Size = UDim2.new(0, 115, 1, 0)
+SettingsTabBtn.BackgroundColor3 = Color3.fromRGB(25, 35, 55)
+SettingsTabBtn.Text = "SETTINGS"; SettingsTabBtn.Font = Enum.Font.GothamBold
+SettingsTabBtn.TextColor3 = Color3.fromRGB(180, 200, 220); SettingsTabBtn.TextSize = 13
+SettingsTabBtn.Parent = TabContainer
+Instance.new("UICorner", SettingsTabBtn).CornerRadius = UDim.new(0, 8)
+local SettingsGlow = Instance.new("UIStroke")
+SettingsGlow.Parent = SettingsTabBtn; SettingsGlow.Color = Color3.fromRGB(40, 140, 180); SettingsGlow.Thickness = 1
+
+local ControlTabBtn = nil
+if isOwner then
+	ControlTabBtn = Instance.new("TextButton")
+	ControlTabBtn.Size = UDim2.new(0, 115, 1, 0)
+	ControlTabBtn.BackgroundColor3 = Color3.fromRGB(25, 35, 55)
+	ControlTabBtn.Text = "CONTROL"; ControlTabBtn.Font = Enum.Font.GothamBold
+	ControlTabBtn.TextColor3 = Color3.fromRGB(180, 200, 220); ControlTabBtn.TextSize = 13
+	ControlTabBtn.Parent = TabContainer
+	Instance.new("UICorner", ControlTabBtn).CornerRadius = UDim.new(0, 8)
+	local ControlGlow = Instance.new("UIStroke")
+	ControlGlow.Parent = ControlTabBtn; ControlGlow.Color = Color3.fromRGB(40, 140, 180); ControlGlow.Thickness = 1
+end
+
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Size = UDim2.new(1, -30, 1, -125)
+ContentContainer.Position = UDim2.new(0, 15, 0, 105)
+ContentContainer.BackgroundTransparency = 1; ContentContainer.Parent = MainFrame
+
+local TargetPage = Instance.new("Frame")
+TargetPage.Size = UDim2.new(1, 0, 1, 0); TargetPage.BackgroundTransparency = 1
+TargetPage.Visible = true; TargetPage.Parent = ContentContainer
+
+local PlayersHeader = Instance.new("TextLabel")
+PlayersHeader.Size = UDim2.new(1, 0, 0, 30)
+PlayersHeader.BackgroundTransparency = 1
+PlayersHeader.Text = "Click Player = Attack"; PlayersHeader.Font = Enum.Font.GothamBold
+PlayersHeader.TextColor3 = Color3.fromRGB(80, 200, 255); PlayersHeader.TextSize = 15
+PlayersHeader.TextXAlignment = Enum.TextXAlignment.Left; PlayersHeader.Parent = TargetPage
+
+local PlayersContainer = Instance.new("Frame")
+PlayersContainer.Size = UDim2.new(1, 0, 1, -35)
+PlayersContainer.Position = UDim2.new(0, 0, 0, 35)
+PlayersContainer.BackgroundTransparency = 1; PlayersContainer.Parent = TargetPage
+
+local PlayerScroll = Instance.new("ScrollingFrame")
+PlayerScroll.Size = UDim2.new(1, 0, 1, 0); PlayerScroll.BackgroundTransparency = 1
+PlayerScroll.ScrollBarThickness = 8
+PlayerScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+PlayerScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+PlayerScroll.Parent = PlayersContainer
+
+local PlayerListLayout = Instance.new("UIListLayout")
+PlayerListLayout.Padding = UDim.new(0, 7)
+PlayerListLayout.Parent = PlayerScroll
+
+local SettingsPage = Instance.new("Frame")
+SettingsPage.Size = UDim2.new(1, 0, 1, 0); SettingsPage.BackgroundTransparency = 1
+SettingsPage.Visible = false; SettingsPage.Parent = ContentContainer
+
+local SettingsScroll = Instance.new("ScrollingFrame")
+SettingsScroll.Size = UDim2.new(1, 0, 1, 0); SettingsScroll.BackgroundTransparency = 1
+SettingsScroll.ScrollBarThickness = 8
+SettingsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+SettingsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+SettingsScroll.Parent = SettingsPage
+
+local SettingsLayout = Instance.new("UIListLayout")
+SettingsLayout.Padding = UDim.new(0, 12)
+SettingsLayout.Parent = SettingsScroll
+
+local ControlPage, ControlScroll
+if isOwner then
+	ControlPage = Instance.new("Frame")
+	ControlPage.Size = UDim2.new(1, 0, 1, 0); ControlPage.BackgroundTransparency = 1
+	ControlPage.Visible = false; ControlPage.Parent = ContentContainer
+
+	ControlScroll = Instance.new("ScrollingFrame")
+	ControlScroll.Size = UDim2.new(1, 0, 1, 0); ControlScroll.BackgroundTransparency = 1
+	ControlScroll.ScrollBarThickness = 8
+	ControlScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	ControlScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ControlScroll.Parent = ControlPage
+
+	local ControlLayout = Instance.new("UIListLayout")
+	ControlLayout.Padding = UDim.new(0, 12)
+	ControlLayout.Parent = ControlScroll
+end
+
+local function switchTab(tabName)
+	currentTab = tabName
+	TargetPage.Visible = tabName == "target"
+	SettingsPage.Visible = tabName == "settings"
+	if isOwner then ControlPage.Visible = tabName == "control" end
+
+	local function styleTab(btn, glow, active)
+		btn.BackgroundColor3 = active and Color3.fromRGB(25, 60, 90) or Color3.fromRGB(25, 35, 55)
+		btn.TextColor3 = active and Color3.fromRGB(120, 240, 255) or Color3.fromRGB(180, 200, 220)
+		glow.Color = active and Color3.fromRGB(60, 220, 255) or Color3.fromRGB(40, 140, 180)
+	end
+	styleTab(TargetTabBtn, TargetGlow, tabName == "target")
+	styleTab(SettingsTabBtn, SettingsGlow, tabName == "settings")
+	if isOwner then styleTab(ControlTabBtn, ControlGlow, tabName == "control") end
+end
+
+TargetTabBtn.MouseButton1Click:Connect(function() switchTab("target") end)
+SettingsTabBtn.MouseButton1Click:Connect(function() switchTab("settings") end)
+if isOwner then ControlTabBtn.MouseButton1Click:Connect(function() switchTab("control") end) end
+
+OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true end)
+CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false end)
+
+function refreshPlayerList()
+	for _, b in ipairs(playerButtons) do b:Destroy() end
+	table.clear(playerButtons)
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= Player then
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1, 0, 0, 36)
+			btn.BackgroundColor3 = Color3.fromRGB(25, 40, 65)
+			btn.Font = Enum.Font.Gotham
+			btn.Text = plr.DisplayName .. " (@" .. plr.Name .. ")"
+			btn.TextColor3 = Color3.fromRGB(180, 220, 255)
+			btn.TextSize = 12
+			btn.Parent = PlayerScroll
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+			local btnGlow = Instance.new("UIStroke")
+			btnGlow.Parent = btn
+			btnGlow.Color = Color3.fromRGB(50, 180, 220)
+			btnGlow.Thickness = 1
+			btn.MouseButton1Click:Connect(function()
+				if isOwner then HVH_MODE = true; HVH_TARGET_USERID = plr.UserId end
+				selectTarget(plr)
+			end)
+			table.insert(playerButtons, btn)
+		end
+	end
+end
+
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
+task.spawn(refreshPlayerList)
+
+local function mkNumInput(label, default, callback, parent)
+	local cont = Instance.new("Frame")
+	cont.Size = UDim2.new(1, 0, 0, 42)
+	cont.BackgroundColor3 = Color3.fromRGB(20, 30, 50)
+	cont.Parent = parent or SettingsScroll
+	Instance.new("UICorner", cont).CornerRadius = UDim.new(0, 8)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(0, 130, 1, 0); lbl.Position = UDim2.new(0, 15, 0, 0)
+	lbl.BackgroundTransparency = 1; lbl.Text = label; lbl.Font = Enum.Font.Gotham
+	lbl.TextColor3 = Color3.fromRGB(180, 220, 255); lbl.TextSize = 13
+	lbl.TextXAlignment = Enum.TextXAlignment.Left; lbl.Parent = cont
+	local box = Instance.new("TextBox")
+	box.Size = UDim2.new(1, -160, 1, -8); box.Position = UDim2.new(0, 145, 0, 4)
+	box.BackgroundColor3 = Color3.fromRGB(25, 45, 70); box.Font = Enum.Font.Gotham
+	box.Text = tostring(default); box.TextColor3 = Color3.fromRGB(200, 240, 255); box.TextSize = 13
+	box.Parent = cont; Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+	box.FocusLost:Connect(function(entered)
+		if entered then local v = tonumber(box.Text); if v then callback(v) end end
+	end)
+end
+
+local function mkToggle(text, getFn, setFn, parent)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 42)
+	local function update()
+		local s = getFn()
+		btn.BackgroundColor3 = s and Color3.fromRGB(20, 60, 50) or Color3.fromRGB(25, 35, 55)
+		btn.Text = text .. " — " .. (s and "ON" or "OFF")
+	end
+	update(); btn.Font = Enum.Font.GothamSemibold
+	btn.TextColor3 = Color3.fromRGB(180, 240, 255); btn.TextSize = 14
+	btn.Parent = parent or SettingsScroll
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+	local togGlow = Instance.new("UIStroke")
+	togGlow.Parent = btn; togGlow.Color = Color3.fromRGB(60, 220, 255); togGlow.Thickness = 1
+	btn.MouseButton1Click:Connect(function() setFn(not getFn()); update() end)
+end
+
+local function mkBtn(text, cb, parent)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 42)
+	btn.BackgroundColor3 = Color3.fromRGB(20, 40, 70); btn.Font = Enum.Font.Gotham
+	btn.Text = text; btn.TextColor3 = Color3.fromRGB(180, 240, 255); btn.TextSize = 14
+	btn.Parent = parent or SettingsScroll
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+	local btnGlow = Instance.new("UIStroke")
+	btnGlow.Parent = btn; btnGlow.Color = Color3.fromRGB(60, 220, 255); btnGlow.Thickness = 1
+	btn.MouseButton1Click:Connect(cb)
+end
+
+mkNumInput("WalkSpeed", WALKSPEED, function(v) applyWalkSpeed(v) end)
+mkNumInput("Hitbox Size", HITBOX_SIZE, function(v) HITBOX_SIZE = v end)
+mkNumInput("Float Height", FLOAT_HEIGHT, function(v) FLOAT_HEIGHT = v end)
+mkNumInput("Distance", DISTANCE, function(v) DISTANCE = v end)
+mkNumInput("Orbit Speed", ORBIT_SPEED, function(v) ORBIT_SPEED = v end)
+mkNumInput("Orbit Radius", ORBIT_RADIUS, function(v) ORBIT_RADIUS = v end)
+
+mkToggle("Atomic Orbit", function() return ORBIT_ENABLED end, function(v) ORBIT_ENABLED = v end)
+mkToggle("Camlock", function() return CAMLOCK_ENABLED end, function(v) CAMLOCK_ENABLED = v end)
+mkToggle("VOID MODE", function() return VOID_MODE_ENABLED end, function(v) VOID_MODE_ENABLED = v end)
+mkToggle("NOCLIP", function() return NOCLIP_ENABLED end, function(v) setNoclip(v) end)
+mkToggle("M1 Spam", function() return UNLIMITED_M1_ENABLED end, function(v) UNLIMITED_M1_ENABLED = v end)
+mkToggle("Auto Block", function() return BLOCK_ENABLED end, function(v) BLOCK_ENABLED = v end)
+
+mkBtn("Stop / Idle", function() if followConnection then stopFollowing() end end)
+
+if isOwner then
+	mkToggle("HVH GROUP MODE", function() return HVH_MODE end, function(v)
+		HVH_MODE = v
+		if not v then HVH_TARGET_USERID = nil; HVH_VOID = false; HVH_NOCLIP = false end
+	end, ControlScroll)
+	mkBtn("Stop All / HVH OFF", function()
+		HVH_MODE = false; HVH_TARGET_USERID = nil; HVH_VOID = false; HVH_NOCLIP = false
+		if followConnection then stopFollowing() end
+	end, ControlScroll)
+end
+-- ==================== END MAIN SCRIPT ====================
+
+-- KEY LOGIC
+local function checkKey(inputKey)
+	attempts += 1
+	if inputKey == CORRECT_KEY then
+		Status.Text = "ACCESS GRANTED"
+		Status.TextColor3 = Color3.fromRGB(80, 255, 140)
+		task.wait(1.5)
+		runMainScript()
+		return true
+	else
+		local remaining = MAX_ATTEMPTS - attempts
+		if remaining > 0 then
+			Status.Text = "INVALID KEY. " .. remaining .. " ATTEMPTS REMAINING"
+		else
+			Status.Text = "ACCESS DENIED"
+			task.wait(1.5)
+			Player:Kick("OXIRO GATE: Too many invalid attempts")
+		end
+		return false
+	end
+end
+
+SubmitBtn.MouseButton1Click:Connect(function()
+	if attempts >= MAX_ATTEMPTS then return end
+	local input = KeyBox.Text
+	if input == "" then
+		Status.Text = "ENTER KEY FIRST"
+		Status.TextColor3 = Color3.fromRGB(255, 180, 60)
+		return
+	end
+	checkKey(input)
+end)
+
+KeyBox.FocusLost:Connect(function(enterPressed)
+	if enterPressed and attempts < MAX_ATTEMPTS and KeyBox.Text ~= "" then
+		checkKey(KeyBox.Text)
+	end
+end)
